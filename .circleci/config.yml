@@ -1,9 +1,8 @@
 # This configuration will automatically create docker images based on conventions
-# For example, if a tag BitcoinCore/0.17.1 is pushed
-# Then on docker hub "btcpayserver/BitcoinCore" will be pushed:
-# - 0.17.1-arm32v7 from BitcoinCore/0.17.1/linuxarm32v7.Dockerfile
-# - 0.17.1-amd64 from BitcoinCore/0.17.1/linuxamd64.Dockerfile
-# - 0.17.1 multi arch image
+# Then on docker hub "lightningcn/bitcoin" will be pushed:
+# - 0.17.1-arm32v7 from Bitcoin/0.17.1/linuxarm32v7.Dockerfile
+# - 0.17.1-arm64v8 from Bitcoin/0.17.1/linuxarm64v8.Dockerfile
+# - 0.17.1-amd64 from Bitcoin/0.17.1/linuxamd64.Dockerfile
 version: 2
 jobs:
   build:
@@ -20,25 +19,11 @@ jobs:
       - checkout  
       - run:
           command: |
-            # If CIRCLE_TAG is "BitcoinCore/0.17.1"
-            # Then:
-            # $SEPARATOR=12
-            # $NODE_NAME=BitcoinCore
-            # $NODE_VERSION=0.17.1
-            # $LATEST_TAG=0.17.1
-            SEPARATOR=$(expr index "$CIRCLE_TAG" "/")
-            NODE_NAME=${CIRCLE_TAG:0:$SEPARATOR-1}
-            LATEST_TAG="${CIRCLE_TAG:$SEPARATOR}"
-            NODE_VERSION="$LATEST_TAG"
-            DOCKERHUB_REPO="btcpayserver/$NODE_NAME"
-            DOCKERHUB_REPO="${DOCKERHUB_REPO,,}"
-            DOCKERHUB_DESTINATION="$DOCKERHUB_REPO:$LATEST_TAG-amd64"
-            DOCKERHUB_DOCKEFILE="$NODE_NAME/$NODE_VERSION/linuxamd64.Dockerfile"
-            #
-            echo "Pushing $DOCKERHUB_DOCKEFILE to dockerhub repository $DOCKERHUB_DESTINATION"
+            VERSION=0.17.1
+            LATEST_TAG=${CIRCLE_TAG:4} #trim "cn-v" from tag
+            sudo docker build --pull -t $DOCKERHUB_REPO:$LATEST_TAG-amd64 -f Bitcoin/0.17.1/linuxamd64.Dockerfile Bitcoin/$VERSION
             sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
-            sudo docker build --pull -t $DOCKERHUB_DESTINATION -f "$DOCKERHUB_DOCKEFILE" "$NODE_NAME/$NODE_VERSION"
-            sudo docker push $DOCKERHUB_DESTINATION
+            sudo docker push $DOCKERHUB_REPO:$LATEST_TAG-amd64
 
   publish_linuxarm64v8:
     machine:
@@ -47,32 +32,14 @@ jobs:
       - checkout  
       - run:
           command: |
-            # If CIRCLE_TAG is "BitcoinCore/0.17.1"
-            # Then:
-            # $SEPARATOR=12
-            # $NODE_NAME=BitcoinCore
-            # $NODE_VERSION=0.17.1
-            # $LATEST_TAG=0.17.1
-            SEPARATOR=$(expr index "$CIRCLE_TAG" "/")
-            NODE_NAME=${CIRCLE_TAG:0:$SEPARATOR-1}
-            LATEST_TAG="${CIRCLE_TAG:$SEPARATOR}"
-            NODE_VERSION="$LATEST_TAG"
-            DOCKERHUB_REPO="btcpayserver/$NODE_NAME"
-            DOCKERHUB_REPO="${DOCKERHUB_REPO,,}"
-            DOCKERHUB_DESTINATION="$DOCKERHUB_REPO:$LATEST_TAG-arm64v8"
-            DOCKERHUB_DOCKEFILE="$NODE_NAME/$NODE_VERSION/linuxarm64v8.Dockerfile"
-            #
-            # Make sure the builder is copy the arm emulator
+            VERSION=0.17.1
+            LATEST_TAG=${CIRCLE_TAG:4} #trim "cn-v" from tag
             sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
-            sudo apt update
-            sudo apt install -y qemu qemu-user-static qemu-user binfmt-support
-            sudo cp /usr/bin/qemu-aarch64-static "$(dirname "$DOCKERHUB_DOCKEFILE")/qemu-aarch64-static"
-            sed -i -e 's/#EnableQEMU //g' "$DOCKERHUB_DOCKEFILE"
-            #
-            echo "Pushing $DOCKERHUB_DOCKEFILE to dockerhub repository $DOCKERHUB_DESTINATION"
+
+            sudo docker build --pull -t $DOCKERHUB_REPO:$LATEST_TAG-arm64v8 -f Bitcoin/0.17.1/linuxarm64v8.Dockerfile Bitcoin/$VERSION
             sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
-            sudo docker build --pull -t $DOCKERHUB_DESTINATION -f "$DOCKERHUB_DOCKEFILE" "$NODE_NAME/$NODE_VERSION"
-            sudo docker push $DOCKERHUB_DESTINATION
+            sudo docker push $DOCKERHUB_REPO:$LATEST_TAG-arm64v8
+
   publish_linuxarm32v7:
     machine:
       docker_layer_caching: true
@@ -80,63 +47,14 @@ jobs:
       - checkout  
       - run:
           command: |
-            # If CIRCLE_TAG is "BitcoinCore/0.17.1"
-            # Then:
-            # $SEPARATOR=12
-            # $NODE_NAME=BitcoinCore
-            # $NODE_VERSION=0.17.1
-            # $LATEST_TAG=0.17.1
-            SEPARATOR=$(expr index "$CIRCLE_TAG" "/")
-            NODE_NAME=${CIRCLE_TAG:0:$SEPARATOR-1}
-            LATEST_TAG="${CIRCLE_TAG:$SEPARATOR}"
-            NODE_VERSION="$LATEST_TAG"
-            DOCKERHUB_REPO="btcpayserver/$NODE_NAME"
-            DOCKERHUB_REPO="${DOCKERHUB_REPO,,}"
-            DOCKERHUB_DESTINATION="$DOCKERHUB_REPO:$LATEST_TAG-arm32v7"
-            DOCKERHUB_DOCKEFILE="$NODE_NAME/$NODE_VERSION/linuxarm32v7.Dockerfile"
-            #
-            # Make sure the builder is copy the arm emulator
+            VERSION=0.17.1
+            LATEST_TAG=${CIRCLE_TAG:4} #trim "cn-v" from tag
             sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
-            sudo apt update
-            sudo apt install -y qemu qemu-user-static qemu-user binfmt-support
-            sudo cp /usr/bin/qemu-arm-static "$(dirname "$DOCKERHUB_DOCKEFILE")/qemu-arm-static"
-            sed -i -e 's/#EnableQEMU //g' "$DOCKERHUB_DOCKEFILE"
-            #
-            echo "Pushing $DOCKERHUB_DOCKEFILE to dockerhub repository $DOCKERHUB_DESTINATION"
-            sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
-            sudo docker build --pull -t $DOCKERHUB_DESTINATION -f "$DOCKERHUB_DOCKEFILE" "$NODE_NAME/$NODE_VERSION"
-            sudo docker push $DOCKERHUB_DESTINATION
-  publish_multiarch:
-    machine:
-      enabled: true
-      image: circleci/classic:201808-01
-    steps:
-      - run:
-          command: |
-            # Turn on Experimental features
-            sudo mkdir $HOME/.docker
-            sudo sh -c 'echo "{ \"experimental\": \"enabled\" }" >> $HOME/.docker/config.json'
-            # If CIRCLE_TAG is "BitcoinCore/0.17.1"
-            # Then:
-            # $SEPARATOR=12
-            # $NODE_NAME=BitcoinCore
-            # $NODE_VERSION=0.17.1
-            # $LATEST_TAG=0.17.1
-            SEPARATOR=$(expr index "$CIRCLE_TAG" "/")
-            NODE_NAME=${CIRCLE_TAG:0:$SEPARATOR-1}
-            LATEST_TAG="${CIRCLE_TAG:$SEPARATOR}"
-            NODE_VERSION="$LATEST_TAG"
-            DOCKERHUB_REPO="btcpayserver/$NODE_NAME"
-            DOCKERHUB_REPO="${DOCKERHUB_REPO,,}"
-            DOCKERHUB_DESTINATION="$DOCKERHUB_REPO:$LATEST_TAG"
-            #
-            sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
-            sudo docker manifest create --amend $DOCKERHUB_DESTINATION $DOCKERHUB_DESTINATION-amd64 $DOCKERHUB_DESTINATION-arm32v7 $DOCKERHUB_DESTINATION-arm64v8
-            sudo docker manifest annotate $DOCKERHUB_DESTINATION $DOCKERHUB_DESTINATION-amd64 --os linux --arch amd64
-            sudo docker manifest annotate $DOCKERHUB_DESTINATION $DOCKERHUB_DESTINATION-arm32v7 --os linux --arch arm --variant v7
-            sudo docker manifest annotate $DOCKERHUB_DESTINATION $DOCKERHUB_DESTINATION-arm64v8 --os linux --arch arm64 --variant v8
-            sudo docker manifest push $DOCKERHUB_DESTINATION -p
 
+            sudo docker build --pull -t $DOCKERHUB_REPO:$LATEST_TAG-arm32v7 -f Bitcoin/0.17.1/linuxarm32v7.Dockerfile Bitcoin/$VERSION
+            sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
+            sudo docker push $DOCKERHUB_REPO:$LATEST_TAG-arm32v7
+  
 workflows:
   version: 2
   publish:
@@ -145,31 +63,17 @@ workflows:
           filters:
             branches:
               ignore: /.*/
-            # Example: BitcoinCore/0.17.1
             tags:
-              only: /^[^/]+[/][0-9]+(\.[0-9]+)*/
+              only: /cn-.+/
       - publish_linuxarm32v7:
           filters:
             branches:
               ignore: /.*/
             tags:
-              # Example: BitcoinCore/0.17.1
-              only: /^[^/]+[/][0-9]+(\.[0-9]+)*/
+              only: /cn-.+/
       - publish_linuxarm64v8:
           filters:
             branches:
               ignore: /.*/
             tags:
-              # Example: BitcoinCore/0.17.1
-              only: /^[^/]+[/][0-9]+(\.[0-9]+)*/
-      - publish_multiarch:
-          requires:
-            - publish_linuxamd64
-            - publish_linuxarm32v7
-            - publish_linuxarm64v8
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              # Example: BitcoinCore/0.17.1
-              only: /^[^/]+[/][0-9]+(\.[0-9]+)*/
+              only: /cn-.+/

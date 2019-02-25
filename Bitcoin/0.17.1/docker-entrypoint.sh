@@ -1,17 +1,17 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-if [[ "$1" == "bitcoin-cli" || "$1" == "bitcoin-tx" || "$1" == "bitcoind" || "$1" == "test_bitcoin" ]]; then
+if [ "$1" = "bitcoin-cli" ] || [ "$1" = "bitcoin-tx" ] || [ "$1" = "bitcoind" ] || [ "$1" = "test_bitcoin" ]; then
 	mkdir -p "$BITCOIN_DATA"
 
 	CONFIG_PREFIX=""
-	if [[ "${BITCOIN_NETWORK}" == "regtest" ]]; then
-		CONFIG_PREFIX=$'regtest=1\n[regtest]'
+	if [ "${BITCOIN_NETWORK}" = "regtest" ]; then
+	   CONFIG_PREFIX=$'regtest=1\n[regtest]'
 	fi
-	if [[ "${BITCOIN_NETWORK}" == "testnet" ]]; then
-		CONFIG_PREFIX=$'testnet=1\n[test]'
+	if [ "${BITCOIN_NETWORK}" = "testnet" ]; then
+	   CONFIG_PREFIX=$'testnet=1\n[test]'
 	fi
-	if [[ "${BITCOIN_NETWORK}" == "mainnet" ]]; then
+	if [ "${BITCOIN_NETWORK}" = "mainnet" ]; then
 		CONFIG_PREFIX=$'mainnet=1\n[main]'
 	fi
 
@@ -31,6 +31,6 @@ if [[ "$1" == "bitcoin-cli" || "$1" == "bitcoin-tx" || "$1" == "bitcoind" || "$1
 	chown -h bitcoin:bitcoin /home/bitcoin/.bitcoin
 
 	exec gosu bitcoin "$@"
-else
-	exec "$@"
 fi
+
+	exec "$@"

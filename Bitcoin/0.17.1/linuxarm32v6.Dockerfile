@@ -1,7 +1,7 @@
 # Build stage for BerkeleyDB
 FROM arm32v6/alpine as berkeleydb
+COPY ./qemu-arm-static /usr/bin/qemu-arm-static
 
-RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk --no-cache add autoconf
 RUN apk --no-cache add automake
 RUN apk --no-cache add build-base
@@ -25,9 +25,9 @@ RUN rm -rf ${BERKELEYDB_PREFIX}/docs
 # Build stage for Bitcoin Core
 FROM arm32v6/alpine as bitcoin-core
 
+COPY ./qemu-arm-static /usr/bin/qemu-arm-static
 COPY --from=berkeleydb /opt /opt
 
-RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk --no-cache add autoconf
 RUN apk --no-cache add automake
 RUN apk --no-cache add boost-dev
@@ -88,8 +88,8 @@ RUN strip ${BITCOIN_PREFIX}/lib/libbitcoinconsensus.so.0.0.0
 
 # Build stage for compiled artifacts
 FROM arm32v6/alpine
+COPY ./qemu-arm-static /usr/bin/qemu-arm-static
 
-RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk --no-cache add \
   boost \
   boost-program_options \
@@ -99,7 +99,6 @@ RUN apk --no-cache add \
   su-exec \
   shadow
 
-RUN apk --repository http://mirrors.aliyun.com/alpine/edge/testing/ --update add gosu
 
 ENV BITCOIN_DATA=/data
 ENV BITCOIN_VERSION=0.17.1

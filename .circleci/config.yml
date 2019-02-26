@@ -21,7 +21,7 @@ jobs:
           command: |
             VERSION=0.17.1
             LATEST_TAG=${CIRCLE_TAG:4} #trim "cn-v" from tag
-            sudo docker build --pull -t $DOCKERHUB_REPO:$LATEST_TAG-amd64 -f Bitcoin/0.17.1/linuxamd64.Dockerfile Bitcoin/$VERSION
+            sudo docker build --pull -t $DOCKERHUB_REPO:$LATEST_TAG-amd64 -f Bitcoin/$VERSION/linuxamd64.Dockerfile Bitcoin/$VERSION
             sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
             sudo docker push $DOCKERHUB_REPO:$LATEST_TAG-amd64
 
@@ -36,7 +36,7 @@ jobs:
             LATEST_TAG=${CIRCLE_TAG:4} #trim "cn-v" from tag
             sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
-            sudo docker build --pull -t $DOCKERHUB_REPO:$LATEST_TAG-arm64v8 -f Bitcoin/0.17.1/linuxarm64v8.Dockerfile Bitcoin/$VERSION
+            sudo docker build --pull -t $DOCKERHUB_REPO:$LATEST_TAG-arm64v8 -f Bitcoin/$VERSION/linuxarm64v8.Dockerfile Bitcoin/$VERSION
             sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
             sudo docker push $DOCKERHUB_REPO:$LATEST_TAG-arm64v8
 
@@ -51,7 +51,7 @@ jobs:
             LATEST_TAG=${CIRCLE_TAG:4} #trim "cn-v" from tag
             sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
-            sudo docker build --pull -t $DOCKERHUB_REPO:$LATEST_TAG-arm32v7 -f Bitcoin/0.17.1/linuxarm32v7.Dockerfile Bitcoin/$VERSION
+            sudo docker build --pull -t $DOCKERHUB_REPO:$LATEST_TAG-arm32v7 -f Bitcoin/$VERSION/linuxarm32v7.Dockerfile Bitcoin/$VERSION
             sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
             sudo docker push $DOCKERHUB_REPO:$LATEST_TAG-arm32v7
 
@@ -64,27 +64,32 @@ jobs:
           command: |
             VERSION=0.17.1
             LATEST_TAG=${CIRCLE_TAG:4} #trim "cn-v" from tag
-            sudo apt update                                                                                                                                                               
-            sudo apt install -y qemu qemu-user-static qemu-user binfmt-support                                                                                                            
             sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
+            # get qemu-arm-static binary                                                                                                                                                  
+            curl -L -o qemu-arm-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/v3.1.0-2/qemu-arm-static.tar.gz
+            tar xzf qemu-arm-static.tar.gz
+            sudo cp qemu-arm-static Bitcoin/$VERSION/qemu-arm-static
 
-            sudo docker build --pull -t $DOCKERHUB_REPO:$LATEST_TAG-arm32v6 -f Bitcoin/0.17.1/linuxarm32v6.Dockerfile Bitcoin/$VERSION
+            sudo docker build --pull -t $DOCKERHUB_REPO:$LATEST_TAG-arm32v6 -f Bitcoin/$VERSION/linuxarm32v6.Dockerfile Bitcoin/$VERSION
             sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
             sudo docker push $DOCKERHUB_REPO:$LATEST_TAG-arm32v6
 
   build_dev:
     machine:
-      docker_layer_caching: true
+      docker_layer_caching: false
     steps:
       - checkout  
       - run:
           command: |
             VERSION=0.17.1
-            sudo apt update                                                                                                                                                               
-            sudo apt install -y qemu qemu-user-static qemu-user binfmt-support                                                                                                            
             sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
-            sudo docker build --pull -t $DOCKERHUB_REPO:dev-arm32v6 -f Bitcoin/0.17.1/linuxarm32v6.Dockerfile Bitcoin/$VERSION
+            # get qemu-arm-static binary                                                                                                                                                  
+            curl -L -o qemu-arm-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/v3.1.0-2/qemu-arm-static.tar.gz
+            tar xzf qemu-arm-static.tar.gz
+            sudo cp qemu-arm-static Bitcoin/$VERSION/qemu-arm-static
+
+            sudo docker build --pull -t $DOCKERHUB_REPO:dev-arm32v6 -f Bitcoin/$VERSION/linuxarm32v6.Dockerfile Bitcoin/$VERSION
   
 workflows:
   version: 2

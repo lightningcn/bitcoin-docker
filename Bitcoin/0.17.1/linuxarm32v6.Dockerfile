@@ -1,5 +1,5 @@
 # Build stage for BerkeleyDB
-FROM arm32v6/alpine as berkeleydb
+FROM arm32v6/alpine:3.9 as berkeleydb
 COPY ./qemu-arm-static /usr/bin/qemu-arm-static
 
 RUN apk --no-cache add autoconf
@@ -23,7 +23,7 @@ RUN make install
 RUN rm -rf ${BERKELEYDB_PREFIX}/docs
 
 # Build stage for Bitcoin Core
-FROM arm32v6/alpine as bitcoin-core
+FROM arm32v6/alpine:3.9 as bitcoin-core
 
 COPY ./qemu-arm-static /usr/bin/qemu-arm-static
 COPY --from=berkeleydb /opt /opt
@@ -87,7 +87,7 @@ RUN strip ${BITCOIN_PREFIX}/lib/libbitcoinconsensus.a
 RUN strip ${BITCOIN_PREFIX}/lib/libbitcoinconsensus.so.0.0.0
 
 # Build stage for compiled artifacts
-FROM arm32v6/alpine
+FROM arm32v6/alpine:3.9
 COPY ./qemu-arm-static /usr/bin/qemu-arm-static
 
 RUN apk --no-cache add \
@@ -106,6 +106,8 @@ ENV BITCOIN_PREFIX=/opt/bitcoin-${BITCOIN_VERSION}
 
 COPY --from=bitcoin-core ${BITCOIN_PREFIX}/bin /usr/local/bin
 
+# for 3.9
+RUN apk --repository http://mirrors.aliyun.com/alpine/edge/testing/ --update add gosu
 RUN chmod +x /usr/bin/gosu && groupadd -r bitcoin && useradd -r -m -g bitcoin bitcoin
 
 # create data directory

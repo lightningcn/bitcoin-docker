@@ -1,8 +1,8 @@
 # This configuration will automatically create docker images based on conventions
 # Then on docker hub "lightningcn/bitcoin" will be pushed:
-# - 0.17.1-arm32v7 from Bitcoin/0.17.1/linuxarm32v7.Dockerfile
-# - 0.17.1-arm64v8 from Bitcoin/0.17.1/linuxarm64v8.Dockerfile
-# - 0.17.1-amd64 from Bitcoin/0.17.1/linuxamd64.Dockerfile
+# - 0.18-arm32v7 from Bitcoin/0.18/linuxarm32v7.Dockerfile
+# - 0.18-arm64v8 from Bitcoin/0.18/linuxarm64v8.Dockerfile
+# - 0.18-amd64 from Bitcoin/0.18/linuxamd64.Dockerfile
 version: 2
 jobs:
   build:
@@ -19,7 +19,7 @@ jobs:
       - checkout  
       - run:
           command: |
-            VERSION=0.17.1
+            VERSION=0.18
             LATEST_TAG=${CIRCLE_TAG:4} #trim "cn-v" from tag
             sudo docker build --pull -t $DOCKERHUB_REPO:$LATEST_TAG-amd64 -f Bitcoin/$VERSION/linuxamd64.Dockerfile Bitcoin/$VERSION
             sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
@@ -32,7 +32,7 @@ jobs:
       - checkout  
       - run:
           command: |
-            VERSION=0.17.1
+            VERSION=0.18
             LATEST_TAG=${CIRCLE_TAG:4} #trim "cn-v" from tag
             sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
@@ -47,7 +47,7 @@ jobs:
       - checkout  
       - run:
           command: |
-            VERSION=0.17.1
+            VERSION=0.18
             LATEST_TAG=${CIRCLE_TAG:4} #trim "cn-v" from tag
             sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
@@ -62,7 +62,7 @@ jobs:
       - checkout  
       - run:
           command: |
-            VERSION=0.17.1
+            VERSION=0.18
             LATEST_TAG=${CIRCLE_TAG:4} #trim "cn-v" from tag
             sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
             # get qemu-arm-static binary                                                                                                                                                  
@@ -81,7 +81,7 @@ jobs:
       - checkout  
       - run:
           command: |
-            VERSION=0.17.1
+            VERSION=0.18
             sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
             # get qemu-arm-static binary                                                                                                                                                  

@@ -2,11 +2,23 @@ FROM debian:stretch-slim as builder
 
 RUN set -ex \
 	&& apt-get update \
-	&& apt-get install -qq --no-install-recommends ca-certificates dirmngr gosu wget
+	&& apt-get install -qq --no-install-recommends ca-certificates dirmngr gosu wget gnupg
 
-ENV BITCOIN_VERSION 0.18
-ENV BITCOIN_URL https://bitcoincore.org/bin/bitcoin-core-0.18/bitcoin-0.18-x86_64-linux-gnu.tar.gz
+RUN set -ex \
+  && for key in \
+    90C8019E36C2E964 \
+  ; do \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" || \
+    gpg --batch --keyserver pgp.mit.edu --recv-keys "$key" || \
+    gpg --batch --keyserver keyserver.pgp.com --recv-keys "$key" || \
+    gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$key" || \
+    gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys "$key" ; \
+  done
+ 
+ENV BITCOIN_VERSION 0.18.0
+ENV BITCOIN_URL https://bitcoincore.org/bin/bitcoin-core-0.18.0/bitcoin-0.18.0-x86_64-linux-gnu.tar.gz
 RUN wget https://bitcoin.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc
+RUN wget https://bitcoin.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}.tar.gz
 RUN gpg --verify SHA256SUMS.asc
 RUN grep " bitcoin-${BITCOIN_VERSION}-x86_64-linux-gnu.tar.gz\$" SHA256SUMS.asc | sha256sum -c -
 

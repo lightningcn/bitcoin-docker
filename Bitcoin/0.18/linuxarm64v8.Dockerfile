@@ -5,8 +5,8 @@ RUN set -ex \
 	&& apt-get update \
 	&& apt-get install -qq --no-install-recommends ca-certificates dirmngr gosu wget qemu qemu-user-static qemu-user binfmt-support
 
-ENV BITCOIN_VERSION 0.18
-ENV BITCOIN_URL https://bitcoincore.org/bin/bitcoin-core-0.18/bitcoin-0.18-aarch64-linux-gnu.tar.gz
+ENV BITCOIN_VERSION 0.18.0
+ENV BITCOIN_URL https://bitcoincore.org/bin/bitcoin-core-0.18.0/bitcoin-0.18.0-aarch64-linux-gnu.tar.gz
 
 # install bitcoin binaries
 RUN set -ex \

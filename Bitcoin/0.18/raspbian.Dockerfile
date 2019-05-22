@@ -11,7 +11,7 @@ RUN apt-get install -qq --no-install-recommends --allow-unauthenticated -yy \
     build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 \
     libminiupnpc-dev libzmq3-dev libdb-dev libdb++-dev
   
-ENV BITCOIN_VERSION=0.18
+ENV BITCOIN_VERSION=0.18.0
 ENV BITCOIN_PREFIX=/opt/bitcoin-${BITCOIN_VERSION}
 
 RUN set -ex \
